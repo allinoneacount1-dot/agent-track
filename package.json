@@ -1,0 +1,25 @@
+{
+  "name": "agent-track",
+  "version": "0.1.0",
+  "description": "Track wallets, contracts, tokens, and transactions across Solana, Ethereum, and BSC — from your terminal.",
+  "type": "module",
+  "bin": {
+    "agent-track": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": ["solana", "ethereum", "bsc", "cli", "crypto", "blockchain", "tracker"],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
