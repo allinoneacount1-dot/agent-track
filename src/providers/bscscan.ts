@@ -1,5 +1,5 @@
 import { apiFetch } from "../utils.js";
-import type { WalletData, TokenBalance, TxBrief, TxData, TokenData, ContractData } from "../types.js";
+import type { WalletData, TokenBalance, TxBrief, TxData, TokenData, ContractData, GasData } from "../types.js";
 
 const BASE = "https://api.bscscan.com/api";
 
@@ -83,5 +83,20 @@ export async function getTx(hash: string, apiKey: string): Promise<TxData> {
     status: (receipt.status as string) === "0x1" ? "success" : "failed",
     gasUsed: String(receipt.gasUsed || 0),
     gasPrice: String(Number(receipt.effectiveGasPrice || 0) / 1e9),
+  };
+}
+
+export async function getGas(apiKey: string): Promise<GasData> {
+  const raw = await apiFetch(
+    buildUrl("gastracker", "gasoracle", {}, apiKey)
+  );
+  const result = (raw as Record<string, unknown>).result as Record<string, unknown> || {};
+  return {
+    chain: "bsc",
+    slow: String(result.SafeGasPrice || "0"),
+    standard: String(result.ProposeGasPrice || "0"),
+    fast: String(result.FastGasPrice || "0"),
+    unit: "gwei",
+    timestamp: String(Math.floor(Date.now() / 1000)),
   };
 }

@@ -7,11 +7,14 @@ import { token } from "./commands/token.js";
 import { tx } from "./commands/tx.js";
 import { portfolio } from "./commands/portfolio.js";
 import { compare } from "./commands/compare.js";
+import { top } from "./commands/top.js";
+import { gas } from "./commands/gas.js";
+import { bulk } from "./commands/bulk.js";
 import type { OutputFormat } from "./types.js";
 
 const pkg = {
   name: "agent-track",
-  version: "0.2.0",
+  version: "0.3.0",
   description: "Multi-chain onchain data tracker for AI agents — Solana, Ethereum, BSC. Pure JSON output.",
 };
 
@@ -84,6 +87,32 @@ program
   .option("--chain2 <chain>", "Force chain for second wallet")
   .action(async (addr1, addr2, opts) => {
     await compare(addr1, addr2, opts.chain1, opts.chain2);
+  });
+
+program
+  .command("top")
+  .description("Get top token holders — whale watch")
+  .argument("<mint>", "Token mint address (Solana)")
+  .option("-l, --limit <number>", "Number of holders", "20")
+  .action(async (mint, opts) => {
+    await top(mint, parseInt(opts.limit, 10));
+  });
+
+program
+  .command("gas")
+  .description("Get current gas prices for Ethereum and/or BSC")
+  .option("-c, --chain <chain>", "ethereum or bsc (default: both)")
+  .action(async (opts) => {
+    await gas(opts.chain);
+  });
+
+program
+  .command("bulk")
+  .description("Check multiple wallets at once")
+  .argument("<addresses...>", "One or more wallet addresses")
+  .option("-c, --chain <chain>", "Force chain for all wallets")
+  .action(async (addresses, opts) => {
+    await bulk(addresses, opts.chain);
   });
 
 program.parse(process.argv);

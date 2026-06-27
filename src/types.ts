@@ -86,3 +86,33 @@ export interface CompareData {
   leftChain: Chain;
   rightChain: Chain;
 }
+
+export interface TopHolderData {
+  mint: string;
+  tokenName: string;
+  tokenSymbol: string;
+  totalSupply: string;
+  holders: HolderEntry[];
+}
+
+export interface HolderEntry {
+  address: string;
+  amount: string;
+  percentage: string;
+  rank: number;
+}
+
+export interface GasData {
+  chain: Chain;
+  slow: string;
+  standard: string;
+  fast: string;
+  unit: string;
+  timestamp: string;
+}
+
+export interface BulkData {
+  wallets: WalletData[];
+  chain: Chain;
+  totalUsd: number;
+}
