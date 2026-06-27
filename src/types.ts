@@ -1,5 +1,12 @@
 export type Chain = "solana" | "ethereum" | "bsc";
 
+export type OutputFormat = "json" | "pretty";
+
+export interface CliOpts {
+  chain?: string;
+  format?: OutputFormat;
+}
+
 export interface CliResponse<T = unknown> {
   status: "ok" | "error";
   chain: Chain;
@@ -20,6 +27,7 @@ export interface TokenBalance {
   mint: string;
   balance: string;
   usdValue?: string;
+  decimals?: number;
 }
 
 export interface TxBrief {
@@ -62,4 +70,19 @@ export interface TxData {
   status: "success" | "failed" | "pending";
   gasUsed?: string;
   gasPrice?: string;
+}
+
+export interface PortfolioData {
+  address: string;
+  chain: Chain;
+  totalUsd: number;
+  solBalance: string;
+  tokens: TokenBalance[];
+}
+
+export interface CompareData {
+  left: WalletData;
+  right: WalletData;
+  leftChain: Chain;
+  rightChain: Chain;
 }

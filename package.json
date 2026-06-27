@@ -10,11 +10,21 @@
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts",
     "build": "tsc",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "tsx --test tests/**/*.test.ts"
   },
-  "keywords": ["solana", "ethereum", "bsc", "cli", "crypto", "blockchain", "tracker"],
+  "keywords": [
+    "solana",
+    "ethereum",
+    "bsc",
+    "cli",
+    "crypto",
+    "blockchain",
+    "tracker"
+  ],
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.6.2",
     "commander": "^13.1.0"
   },
   "devDependencies": {

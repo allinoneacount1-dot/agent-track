@@ -1,13 +1,23 @@
 # agent-track
 
-CLI untuk track wallet, contract, token, dan transaksi di **Solana**, **Ethereum**, dan **BSC**. Output pure JSON — cocok buat agent framework kayak Hermes, OpenCLAw, Claude Code, dan sejenisnya.
+Multi-chain onchain data tracker untuk **AI agents**. Track wallet, contract, token, dan transaksi di **Solana**, **Ethereum**, dan **BSC** — pure JSON output, gak perlu API key buat Solana.
 
 ```
 npx agent-track wallet <address>
-npx agent-track contract <address>
-npx agent-track token <address>
-npx agent-track tx <hash>
+npx agent-track portfolio <address>
+npx agent-track compare <addr1> <addr2>
 ```
+
+## Fitur
+
+| Command       | Description                                        | API Key Required |
+|---------------|----------------------------------------------------|------------------|
+| `wallet`      | Balance, token holdings, recent tx                 | Solana: ✗, EVM: ✓ |
+| `contract`    | Source code, ABI, compiler, verification status    | Solana: ✗, EVM: ✓ |
+| `token`       | Info, supply, holders, price                       | Solana: ✗, EVM: ✓ |
+| `tx`          | Detail transaksi (block, from, to, value, fee, gas)| Solana: ✗, EVM: ✓ |
+| `portfolio`   | Aggregate semua token + total USD value            | Solana: ✗, EVM: ✓ |
+| `compare`     | Bandingin dua wallet side-by-side                  | Solana: ✗, EVM: ✓ |
 
 ## Install
 
@@ -15,7 +25,7 @@ npx agent-track tx <hash>
 npm install -g agent-track
 ```
 
-Atau langsung via `npx` tanpa install:
+Atau langsung via `npx`:
 
 ```bash
 npx agent-track wallet So11111111111111111111111111111111111111112
@@ -24,15 +34,13 @@ npx agent-track wallet So11111111111111111111111111111111111111112
 ## Usage
 
 ### Wallet
-
 ```bash
-agent-track wallet 7xKX...3sF9
-agent-track wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain ethereum
-agent-track wallet 0x... --chain bsc
+agent-track wallet 7xKX...3sF9                           # Solana (auto)
+agent-track wallet 0xd8dA6...A96045 --chain ethereum      # EVM (manual)
+agent-track wallet 0x... --pretty                         # pretty terminal
 ```
 
 Output:
-
 ```json
 {
   "status": "ok",
@@ -41,71 +49,72 @@ Output:
     "address": "7xKX...3sF9",
     "balance": "124.32",
     "tokens": [
-      { "symbol": "USDC", "name": "USD Coin", "mint": "EPjFW...", "balance": "8450.00" }
+      { "symbol": "USDC", "name": "USD Coin", "mint": "EPjFW...", "balance": "8450.00", "usdValue": "8450.00" }
     ],
-    "recentTx": [
-      { "hash": "5KtN...", "type": "send", "value": "10.5", "timestamp": "1719500000", "status": "success" }
-    ]
+    "recentTx": [...]
   }
 }
 ```
 
-### Contract
-
+### Portfolio
 ```bash
-agent-track contract 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D --chain ethereum
+agent-track portfolio So11111111111111111111111111111111111111112
 ```
+→ Aggregate semua token + total USD value. Satu langkah langsung tau nilai wallet.
 
-Output: source code, ABI, compiler version, license, verification status.
-
-### Token
-
+### Compare
 ```bash
-agent-track token EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v --chain solana
+agent-track compare 7xKX...3sF9 0xd8dA6...A96045
 ```
-
-Output: name, symbol, decimals, total supply, holders.
-
-### Transaction
-
-```bash
-agent-track tx 5KtN3qCjKgmPqFxmP3mQykAz7mUGKTuLXMGLFQ4WqBg --chain solana
-```
-
-Output: block, from, to, value, fee, status, gas.
+→ Bandingin dua wallet sekaligus, beda chain pun bisa.
 
 ## Chain Detection
 
 CLI auto-detect chain dari format address:
-- `0x` + 40 hex chars → **Ethereum / BSC** (gunakan `--chain` untuk bedain)
-- Base58 (32-44 chars) → **Solana**
+- **0x** + 40/64 hex chars → Ethereum / BSC (pakai `--chain` buat bedain)
+- **Base58** (32-44 chars) → Solana
 
-Override dengan `--chain solana | ethereum | bsc`.
+Override: `--chain solana | ethereum | bsc`
+
+## Output Format
+
+### JSON (default — buat agent)
+
+Pure JSON ke **stdout**. Stderr dipake buat retry log, gak campur aduk.
+
+### Pretty (optional)
+
+```
+agent-track wallet <addr> --pretty
+```
+→ Colored terminal output pake chalk.
+
+## Agent-First Design
+
+agent-track dirancang khusus buat AI agent framework kayak **Hermes**, **OpenCLAw**, Claude Code, dll:
+
+| Feature | Why |
+|---------|-----|
+| Pure JSON stdout | Agent gampang parse, gak perlu strip teks |
+| Stderr for logging | Retry/log messages gak ngerusak output |
+| Exit codes | 0 = ok, 1 = error — agent tau kapan harus retry |
+| Auto-detect chain | Agent gak perlu nebak chain |
+| Rich data | Metadata, USD value, konteks harga — langsung siap analisa |
+| No API key for Solana | Bisa jalan tanpa setup |
+| Retry + backoff | HTTP 429/5xx otomatis retry 3x |
 
 ## API Keys
 
-Buat file `.env` di working directory atau set environment variables:
+Buat `.env` atau set environment vars:
 
 ```env
-SOLSCAN_API_KEY=your_key
 ETHERSCAN_API_KEY=your_key
 BSCSCAN_API_KEY=your_key
 ```
 
-Dapatkan free API key:
-- [Solscan API](https://solscan.io/api)
-- [Etherscan API](https://etherscan.io/myapikey)
-- [BscScan API](https://bscscan.com/myapikey)
+Dapatkan: [Etherscan](https://etherscan.io/myapikey) · [BscScan](https://bscscan.com/myapikey)
 
 > Solscan tidak butuh API key untuk request basic.
-
-## Output Format
-
-Semua output **JSON** ke stdout. Stderr dipake buat error message. Exit code:
-- `0` → sukses
-- `1` → error
-
-Cocok diparsing oleh agent/AI tools.
 
 ## Development
 
@@ -113,7 +122,8 @@ Cocok diparsing oleh agent/AI tools.
 git clone https://github.com/allinoneacount1-dot/agent-track
 cd agent-track
 npm install
-npm run dev wallet <address>
+npm test                          # 19 unit tests
+npm run dev wallet <address>      # quick test
 ```
 
 ## License

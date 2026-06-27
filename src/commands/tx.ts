@@ -1,34 +1,36 @@
-import { ok, err, printJson, resolveChain, getApiKeys } from "../utils.js";
+import { ok, err, printJson, printPretty, resolveChain, getApiKeys, validateTxHash } from "../utils.js";
 import { getTx as getSolTx } from "../providers/solscan.js";
 import { getTx as getEthTx } from "../providers/etherscan.js";
 import { getTx as getBscTx } from "../providers/bscscan.js";
+import type { Chain, OutputFormat, TxData } from "../types.js";
 
-export async function tx(hash: string, chainOpt?: string) {
-  const chain = resolveChain(chainOpt, hash);
+export async function tx(hash: string, chainOpt?: string, format: OutputFormat = "json") {
+  const h = validateTxHash(hash);
+  let chain: Chain;
+  try { chain = resolveChain(chainOpt, h); }
+  catch (e) { printJson(err("solana", (e as Error).message)); process.exit(1); }
+
   const keys = getApiKeys();
 
   try {
-    let data;
+    let data: TxData;
     switch (chain) {
       case "solana":
-        data = await getSolTx(hash);
+        data = await getSolTx(h);
         break;
-      case "ethereum":
-        if (!keys.etherscan) {
-          printJson(err(chain, "ETHERSCAN_API_KEY not set"));
-          process.exit(1);
-        }
-        data = await getEthTx(hash, keys.etherscan);
+      case "ethereum": {
+        if (!keys.etherscan) { printJson(err(chain, "ETHERSCAN_API_KEY not set")); process.exit(1); }
+        data = await getEthTx(h, keys.etherscan);
         break;
-      case "bsc":
-        if (!keys.bscscan) {
-          printJson(err(chain, "BSCSCAN_API_KEY not set"));
-          process.exit(1);
-        }
-        data = await getBscTx(hash, keys.bscscan);
+      }
+      case "bsc": {
+        if (!keys.bscscan) { printJson(err(chain, "BSCSCAN_API_KEY not set")); process.exit(1); }
+        data = await getBscTx(h, keys.bscscan);
         break;
+      }
     }
-    printJson(ok(chain, data));
+    const response = ok(chain, data);
+    format === "json" ? printJson(response) : printPretty(response, format);
   } catch (e) {
     printJson(err(chain, (e as Error).message));
     process.exit(1);
